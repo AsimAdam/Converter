@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TextInput, Button, TouchableOpacity, Text } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { Alert } from 'react-native';
 import CountryFlag from "react-native-country-flag";
 
 

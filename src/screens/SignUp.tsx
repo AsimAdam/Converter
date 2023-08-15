@@ -6,9 +6,6 @@ import CountryPicker from 'react-native-country-picker-modal';
  
 const SignUp = () => {
     const [name, setname] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [searchedname, setSearchedname]: any = useState();
-    const [overlay, setOverlay] = useState(false);
     const [selectedCountry, setSelectedCountry]: any = useState(null);
     // const navigation = useNavigation();
     
