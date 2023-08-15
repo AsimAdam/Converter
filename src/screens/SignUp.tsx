@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Dimensions, Image, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import CountryPicker from 'react-native-country-picker-modal';
 
+
  
 const SignUp = () => {
     const [name, setname] = useState('');

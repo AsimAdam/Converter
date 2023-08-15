@@ -1,14 +1,19 @@
+import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import { Dimensions, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Image } from "react-native-elements";
 import Icon from 'react-native-vector-icons/Ionicons';
+import SignUp from "./SignUp";
 
 
 const SignIn = () => {
-    const [passwordVisibility, setPasswordVisibility] = useState(true);
-
+const [passwordVisibility, setPasswordVisibility] = useState(true);
+const navigation = useNavigation();
 const handleSignIn = () => {
 
+}
+const handleSignUp = () => {
+    navigation.navigate('SignUp' as never);
 }
 const handlePasswordVisibilityToggle = () => {
     setPasswordVisibility(!passwordVisibility);
