@@ -1,12 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TextInput, Button, TouchableOpacity, Text } from 'react-native';
+import { View, StyleSheet, TextInput, TouchableOpacity, Text, Image, Dimensions } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { color } from 'react-native-elements/dist/helpers';
-import currencyCodes from 'currency-codes';
-import CurrencyInput from 'react-native-currency-input';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import currencySymbolMap from 'currency-symbol-map';
-
 
 const Converter = () => {
   const [amount, setAmount] = useState('');
@@ -14,23 +10,18 @@ const Converter = () => {
   const [targetCurrency, setTargetCurrency] = useState('');
   const [exchangeRate, setExchangeRate] = useState(0);
   const [conversionResult, setConversionResult] = useState('');
-  const [currencyOptions, setCurrencyOptions] = useState<any>([]);
+  const [currencyOptions, setCurrencyOptions] = useState([]);
 
   useEffect(() => {
     const API_URL = `http://data.fixer.io/api/latest?access_key=2da44c532cf058fc68c02864af54f2f6`;
     fetch(API_URL)
       .then((response) => response.json())
       .then((data) => {
-        
-        const availableCurrencies = Object.keys(data.rates);
-
-        console.log('Available Currencies:', availableCurrencies); 
+        const availableCurrencies: any = Object.keys(data.rates);
         setCurrencyOptions(availableCurrencies);
         setSourceCurrency(availableCurrencies[0]);
         setTargetCurrency(availableCurrencies[1]);
-
-       
-        const rate = data.rates[targetCurrency] / data.rates[sourceCurrency];
+        const rate = data.rates[availableCurrencies[1]] / data.rates[availableCurrencies[0]];
         setExchangeRate(rate);
       })
       .catch((error) => {
@@ -38,17 +29,17 @@ const Converter = () => {
       });
   }, []);
   
+  
 
   const handleConvert = () => {
     if (!amount) {
       return;
     }
-    
+
     const convertedAmount = parseFloat(amount) * exchangeRate;
-  const result = `${amount} ${sourceCurrency} = ${convertedAmount.toFixed(2)} ${currencySymbolMap(targetCurrency)}`;
-  setConversionResult(result);
-  
-   
+    const result = `${amount} ${sourceCurrency} = ${convertedAmount.toFixed(2)} ${currencySymbolMap(targetCurrency)}`;
+    setConversionResult(result);
+
     const conversionHistory = {
       sourceAmount: amount,
       sourceCurrency,
@@ -56,12 +47,12 @@ const Converter = () => {
       targetCurrency,
       date: new Date().toISOString(),
     };
-  
+
     AsyncStorage.getItem('conversionHistory')
       .then((data) => {
         const existingHistory = data ? JSON.parse(data) : [];
         const newHistory = [...existingHistory, conversionHistory];
-        
+
         AsyncStorage.setItem('conversionHistory', JSON.stringify(newHistory))
           .then(() => {
             console.log('Conversion history saved:', newHistory);
@@ -73,15 +64,6 @@ const Converter = () => {
       .catch((error) => {
         console.error('Error fetching conversion history:', error);
       });
-  };
-  const saveConversionToHistory = async (result: any) => {
-    try {
-      const history = await AsyncStorage.getItem('conversionHistory');
-      const updatedHistory = history ? JSON.parse(history).concat(result) : [result];
-      await AsyncStorage.setItem('conversionHistory', JSON.stringify(updatedHistory));
-    } catch (error) {
-      console.error('Error saving conversion history:', error);
-    }
   };
 
   return (
@@ -97,39 +79,53 @@ const Converter = () => {
         />
       </View>
       <View style={styles.row}>
-        
-      <Picker
-        style={styles.picker}
-        selectedValue={sourceCurrency}
-        onValueChange={(itemValue) => setSourceCurrency(itemValue)}
-      >
-        {currencyOptions.map((currency: any) => (
-          <Picker.Item key={currency} label={currency} value={currency} />
-        ))}
-      </Picker>
-      <Text style={styles.toText}>to</Text>
-      <Picker
-        style={styles.picker}
-        selectedValue={targetCurrency}
-        onValueChange={(itemValue) => setTargetCurrency(itemValue)}
-      >
-        {currencyOptions.map((currency: any) => (
-          <Picker.Item key={currency} label={currency} value={currency} />
-        ))}
-      </Picker>
+        {/* Source Currency Picker */}
+        <Picker
+          style={styles.picker}
+          selectedValue={sourceCurrency}
+          onValueChange={(itemValue) => setSourceCurrency(itemValue)}
+        >
+          {currencyOptions.map((currency) => (
+            <Picker.Item
+              key={currency}
+              label={`${currency} - ${currencySymbolMap(currency)}`}
+              value={currency}
+            />
+          ))}
+        </Picker>
 
+        <Text style={styles.toText}>to</Text>
+
+        {/* Target Currency Picker */}
+        <Picker
+          style={styles.picker}
+          selectedValue={targetCurrency}
+          onValueChange={(itemValue) => setTargetCurrency(itemValue)}
+        >
+          {currencyOptions.map((currency) => (
+            <Picker.Item
+              key={currency}
+              label={`${currency} - ${currencySymbolMap(currency)}`}
+              value={currency}
+            />
+          ))}
+        </Picker>
       </View>
       <TouchableOpacity style={styles.convertButton} onPress={handleConvert}>
-        <Text style={{ color: 'white', fontSize: 18, fontWeight: 'bold', alignSelf: 'center' }}>Convert</Text>
+        <Image
+          source={require('../assets/exchange.png')}
+          style={{ width: 30, height: 30, alignSelf: 'center', marginRight: 10 }}
+          resizeMode="contain"
+        />
+        <Text style={styles.convertButtonText}>Convert</Text>
       </TouchableOpacity>
       {conversionResult !== '' && (
-  <Text style={styles.resultText}>
-    {amount} {currencySymbolMap(sourceCurrency)} ={' '}
-    <Text style={styles.resultNumber}>{(parseFloat(amount) * exchangeRate).toFixed(2)}</Text> {currencySymbolMap(targetCurrency)}
-  </Text>
-)}
-
-
+        <Text style={styles.resultText}>
+          {amount} {currencySymbolMap(sourceCurrency)} ={' '}
+          <Text style={styles.resultNumber}>{(parseFloat(amount) * exchangeRate).toFixed(2)}</Text>{' '}
+          {currencySymbolMap(targetCurrency)}
+        </Text>
+      )}
     </View>
   );
 };
@@ -160,7 +156,7 @@ const styles = StyleSheet.create({
   picker: {
     flex: 1,
     height: 50,
-    backgroundColor: '#0068FF',
+    backgroundColor: '#151617',
     borderRadius: 25,
     color: 'white',
   },
@@ -174,6 +170,15 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    width: Dimensions.get("screen").width * 0.90,
+  },
+  convertButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
     alignSelf: 'center',
   },
   resultText: {
@@ -190,7 +195,3 @@ const styles = StyleSheet.create({
 });
 
 export default Converter;
-function saveConversionToHistory(result: string) {
-  throw new Error('Function not implemented.');
-}
-

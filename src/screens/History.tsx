@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, SafeAreaView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect } from '@react-navigation/native';
+
 
 const HistoryScreen = () => {
   const [history, setHistory] = useState([]);
@@ -30,7 +30,7 @@ const HistoryScreen = () => {
     return (
       <View style={styles.historyItem}>
         <View>
-          <Text style={{ fontSize: 16, color: 'black', fontWeight: 'bold' }}>Last Conversion</Text>
+          <Text style={{ fontSize: 16, color: 'grey', fontWeight: 'bold' }}>Conversion</Text>
           <Text style={{ fontSize: 18, color: 'white', fontWeight: 'bold' }}>{`${item.sourceAmount} ${item.sourceCurrency} = ${item.targetAmount} ${item.targetCurrency}`}</Text>
         </View>
   
@@ -82,8 +82,9 @@ const styles = StyleSheet.create({
     paddingVertical: 15
   },
   title: {
-    color: 'black',
-    fontSize: 20
+    color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold'
   },
   sliderContainer: {
     paddingHorizontal: 10,

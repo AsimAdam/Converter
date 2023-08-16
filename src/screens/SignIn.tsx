@@ -35,9 +35,7 @@ return (
         placeholderTextColor={"#d7d7d6"}
         secureTextEntry={passwordVisibility}
       />
-     {/* <TouchableOpacity style={styles.eyeButton} onPress={handlePasswordVisibilityToggle}>
-        <Icon name={passwordVisibility ? 'eye-off' : 'eye'} size={20} color='#d7d7d6' />
-      </TouchableOpacity> */}
+    
       <TouchableOpacity style={styles.signInButton} onPress={handleSignIn}>
         <Text style={{ color: 'white', fontSize: 18 }}>Sign in</Text>
       </TouchableOpacity>
