@@ -26,6 +26,7 @@ if linkage != nil
 end
 
 target 'Converter' do
+  pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
   config = use_native_modules!
 
   # Flags change depending on the env values.

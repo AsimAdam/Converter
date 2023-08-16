@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Alert } from "react-native";
 import { Dimensions, Image, KeyboardAvoidingView, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { url } from "../assets/constants";
+import { addUrl, url } from "../assets/constants";
 import Icon from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { emptyFields } from "../assets/constants";
@@ -29,9 +29,17 @@ const SignUp = ({navigation, route}: any) => {
     if(password == confirmPassword){
       const account = {email: email, password: password, name: name};
       await AsyncStorage.setItem("account", JSON.stringify(account))
-      .then(() => {
+      .then(async () => {
+        const response = await fetch(addUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            }, 
+            body: JSON.stringify(account),
+        });
+        const res = await response.json(); 
         setLoad(false);
-        Alert.alert("Account Created Successfully!");
+        Alert.alert(res.message);
         navigation.navigate("TopTabs");
       })
     }

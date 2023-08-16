@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TextInput, Button, TouchableOpacity, Text } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import CountryFlag from "react-native-country-flag";
-
 
 const Converter = () => {
     const [amount, setAmount] = useState('');
@@ -10,19 +8,6 @@ const Converter = () => {
     const [targetCurrency, setTargetCurrency] = useState('EUR');
     const [exchangeRate, setExchangeRate] = useState(0);
     const [conversionResult, setConversionResult] = useState('');
-  
-    useEffect(() => {
-      const API_URL = `http://data.fixer.io/api/latest?access_key=2da44c532cf058fc68c02864af54f2f6`;
-      fetch(API_URL)
-        .then((response) => response.json())
-        .then((data) => {
-          const rate = data.rates[targetCurrency] / data.rates[sourceCurrency];
-          setExchangeRate(rate);
-        })
-        .catch((error) => {
-          console.error('Error fetching data:', error);
-        });
-    }, [sourceCurrency, targetCurrency]);
   
     const handleConvert = () => {
       if (!amount) {

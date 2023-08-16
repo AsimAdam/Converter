@@ -1,8 +1,6 @@
 import React from "react";
+import { Dimensions, Image, StyleSheet, TouchableOpacity, View, Text } from "react-native";
 import OTPInputView from '@twotalltotems/react-native-otp-input'
-import { Dimensions, Image, StyleSheet, TouchableOpacity, View } from "react-native";
-import { Text } from "react-native-elements";
-
 
 const Recovery = () => {
 

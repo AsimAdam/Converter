@@ -1,9 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, Dimensions, KeyboardAvoidingView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Image } from "react-native-elements";
 import Icon from 'react-native-vector-icons/Ionicons';
-import { emptyFields } from "../assets/constants";
+import { emptyFields, verifyUrl } from "../assets/constants";
 
 const SignIn = ({navigation, route}: any) => {
   const [passwordVisibility, setPasswordVisibility] = useState(true);
@@ -16,25 +16,20 @@ const SignIn = ({navigation, route}: any) => {
       return;
     }
     setLoad(true);
-    await AsyncStorage.getItem("account")
-    .then((res: any) => {
-      if(res !== null){
-        const accountData = {...JSON.parse(res)};
-        if((accountData.email == email || accountData.name == email) && pass == accountData.password){
-          setLoad(false);
-          Alert.alert("Login successful.");
-          navigation.navigate("TopTabs");
-        }
-        else{
-          setLoad(false);
-          Alert.alert("Wrong name/email or password.")
-        }
-      }
-      else{
-        setLoad(false);
-        Alert.alert("No account exists with these credentials.");
-      }
-    })
+    const response = await fetch(verifyUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      }, 
+      body: JSON.stringify({user: email, password: pass}),
+    });
+    const res = await response.json(); 
+    setLoad(false);
+    Alert.alert(res.message)
+    if(res.message == "Account verified successfully"){
+      await AsyncStorage.setItem("account", JSON.stringify(res.user));
+      navigation.navigate("TopTabs");
+    }
   };
   const handleSignUp = () => {
     navigation.navigate("Register")
