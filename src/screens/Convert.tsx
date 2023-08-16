@@ -12,8 +12,12 @@ const Converter = () => {
   const [conversionResult, setConversionResult] = useState('');
   const [currencyOptions, setCurrencyOptions] = useState([]);
 
+
+
+
+
   useEffect(() => {
-    const API_URL = `http://data.fixer.io/api/latest?access_key=2da44c532cf058fc68c02864af54f2f6`;
+    const API_URL = `https://openexchangerates.org/api/latest.json?app_id=ccebe6cd0d884dbaac76453a0a5d1619`;
     fetch(API_URL)
       .then((response) => response.json())
       .then((data) => {
@@ -21,8 +25,12 @@ const Converter = () => {
         setCurrencyOptions(availableCurrencies);
         setSourceCurrency(availableCurrencies[0]);
         setTargetCurrency(availableCurrencies[1]);
-        const rate = data.rates[availableCurrencies[1]] / data.rates[availableCurrencies[0]];
+        const rate = data.rates[availableCurrencies[0]] / data.rates[availableCurrencies[1]];
         setExchangeRate(rate);
+  
+    
+        const timestamp = data.timestamp;
+        // console.log('Timestamp:', timestamp);
       })
       .catch((error) => {
         console.error('Error fetching data:', error);
@@ -30,14 +38,19 @@ const Converter = () => {
   }, []);
   
   
+  let convertedAmount = 0;
 
   const handleConvert = () => {
-    if (!amount) {
+    if (!amount || isNaN(exchangeRate)) {
       return;
     }
-
-    const convertedAmount = parseFloat(amount) * exchangeRate;
-    const result = `${amount} ${sourceCurrency} = ${convertedAmount.toFixed(2)} ${currencySymbolMap(targetCurrency)}`;
+  
+    const convertedAmount = parseFloat(amount) * exchangeRate; 
+    console.log('Amount:', amount);
+    console.log('Exchange Rate:', exchangeRate);
+    console.log('Converted Amount:', convertedAmount);
+  
+    const result = `${amount} ${currencySymbolMap(sourceCurrency)} = ${convertedAmount.toFixed(2)} ${currencySymbolMap(targetCurrency)}`;
     setConversionResult(result);
 
     const conversionHistory = {
@@ -55,14 +68,14 @@ const Converter = () => {
 
         AsyncStorage.setItem('conversionHistory', JSON.stringify(newHistory))
           .then(() => {
-            console.log('Conversion history saved:', newHistory);
+            // console.log('Conversion history saved:', newHistory);
           })
           .catch((error) => {
-            console.error('Error saving conversion history:', error);
+            // console.error('Error saving conversion history:', error);
           });
       })
       .catch((error) => {
-        console.error('Error fetching conversion history:', error);
+        // console.error('Error fetching conversion history:', error);
       });
   };
 
@@ -79,7 +92,7 @@ const Converter = () => {
         />
       </View>
       <View style={styles.row}>
-        {/* Source Currency Picker */}
+       
         <Picker
           style={styles.picker}
           selectedValue={sourceCurrency}
@@ -96,7 +109,7 @@ const Converter = () => {
 
         <Text style={styles.toText}>to</Text>
 
-        {/* Target Currency Picker */}
+       
         <Picker
           style={styles.picker}
           selectedValue={targetCurrency}
@@ -123,6 +136,7 @@ const Converter = () => {
         <Text style={styles.resultText}>
           {amount} {currencySymbolMap(sourceCurrency)} ={' '}
           <Text style={styles.resultNumber}>{(parseFloat(amount) * exchangeRate).toFixed(2)}</Text>{' '}
+          {/* <Text style={styles.resultNumber}>{(parseFloat(amount) / exchangeRate).toFixed(2)}</Text>{' '} */}
           {currencySymbolMap(targetCurrency)}
         </Text>
       )}
@@ -164,6 +178,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginHorizontal: 8,
+    color: 'white'
   },
   convertButton: {
     backgroundColor: '#151617',
