@@ -3,13 +3,20 @@ import React, { useEffect, useState } from "react";
 import { Alert, Dimensions, KeyboardAvoidingView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Image } from "react-native-elements";
 import Icon from 'react-native-vector-icons/Ionicons';
-import { emptyFields, verifyUrl } from "../assets/constants";
+import { emptyFields, resetUrl, verifyUrl } from "../assets/constants";
+import Modal from "react-native-modal";
+import { SecondModalComponent } from "../assets/controllers/Modal";
 
 const SignIn = ({navigation, route}: any) => {
+  const [slogan, setSlogan] = useState("");
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [recoveryCode, setRecoveryCode] = useState("");
   const [passwordVisibility, setPasswordVisibility] = useState(true);
   const [email, setEmail] = useState('');
   const [pass, setPass] = useState('');
   const [load, setLoad] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const handleSignIn = async() => {
     if(email == "" || pass == ""){
       Alert.alert(emptyFields);
@@ -37,17 +44,53 @@ const SignIn = ({navigation, route}: any) => {
   const handlePasswordVisibilityToggle = () => {
     setPasswordVisibility(!passwordVisibility);
   };
-  const handleForgotPassword = () => {
-
+  const handleForgotPassword = async() => {
+    if(name == "" || password == "" || recoveryCode == ""){
+      Alert.alert("Please input the name/email, recovery code, and new password to reset");
+      return;
+    }
+    const response = await fetch(resetUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      }, 
+      body: JSON.stringify({name: name, password: password, code: recoveryCode}),
+    });
+    const res = await response.json(); 
+    if(res.message == "Password reset successfully"){
+      setModalVisible(false);
+      Alert.alert(res.message + " " + ", please log in to continue");
+    }
+    else{
+      Alert.alert(res.message);
+    }
   };
+
+  const getTitle = async() => {
+    const response = await fetch(resetUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain",
+      }, 
+      body: "CMT Pro",
+    });
+    const res = await response.json(); 
+    setSlogan(res);
+  };
+
+  useEffect(() => {
+    getTitle();
+  },[]);
 
   return (
     <ScrollView style={styles.container}>
       <KeyboardAvoidingView style={styles.containerStyle}>
-        <Image source={require("../assets/heading.png")} style={{width: 80, height: 80, alignSelf: "center", marginTop: 20}} resizeMode="contain" />
+        <Image source={require("../assets/logo.png")} style={{width: 100, height: 100, alignSelf: "center", marginTop: 20}} resizeMode="contain" />
         <View style={styles.alignment}>
           <Text style={{fontWeight: "600", fontSize: 25, color: "white", marginTop: 20}}>CMT Pro</Text>
-          <Text style={{fontWeight: "500", fontSize: 20, color: "white", marginTop: 20, textAlign: "center"}}>Experience the convenience of effortless currency conversion.</Text>
+          {slogan !== "" ?
+            <Text style={{fontWeight: "500", fontSize: 20, color: "white", marginTop: 20, textAlign: "center"}}>Experience the convenience of effortless currency conversion.</Text>
+          : null}
         </View>
 
         <View style={styles.alignment}>
@@ -55,15 +98,15 @@ const SignIn = ({navigation, route}: any) => {
             style={styles.emailInput}
             value={email}
             onChangeText={setEmail}
-            placeholder="Enter your name or email here"
-            placeholderTextColor={"#d7d7d6"}
+            placeholder="Account name/email"
+            placeholderTextColor={"#DFDFDF"}
           />
           <View style={[styles.emailInput, {flexDirection: "row", alignItems: "center", justifyContent: "space-between"}]}>
             <TextInput
-              placeholder="Enter your password here"
+              placeholder="Password"
               value={pass}
               onChangeText={setPass}
-              placeholderTextColor={"#d7d7d6"}
+              placeholderTextColor={"#DFDFDF"}
               style={styles.passwordInput}
               secureTextEntry={passwordVisibility}
             />
@@ -77,18 +120,32 @@ const SignIn = ({navigation, route}: any) => {
           <TouchableOpacity style={styles.signInButton} onPress={handleSignIn}>
             <Text style={{ color: 'white', fontSize: 18 }}>Sign in</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleForgotPassword}>
-            <Text style={{ color: '#0068FF', fontSize: 15, alignSelf: 'center', marginTop: 20 }}>Forget password?</Text>
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
+            <Text style={{ color: '#076AFF', fontSize: 15, alignSelf: 'center', marginTop: 20 }}>Forget password?</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={[styles.alignment, {marginTop: 80}]}>
-          <Text style={{ color: '#0068FF', fontSize: 15, alignSelf: 'center'}}>Don't have an account?</Text>
-          <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
-            <Text style={styles.buttonText}>Sign up</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity style={[styles.alignment, {marginTop: 80}]} onPress={handleSignUp}>
+          <Text style={{ color: '#d7d7d6', fontSize: 18, alignSelf: 'center'}}>Don't have an account?{"  "}
+            <Text style={{color: "#076AFF"}}>
+              Sign up
+            </Text>
+          </Text>
+        </TouchableOpacity>
+
       </KeyboardAvoidingView>
+
+      <SecondModalComponent
+        visible={modalVisible}
+        setVisible={setModalVisible}
+        name={name}
+        setName={setName}
+        password={password}
+        setPassword={setPassword}
+        handleConfirm={handleForgotPassword}
+        recoveryCode={recoveryCode}
+        setRecoveryCode={setRecoveryCode}
+      />
       </ScrollView>
   )
 }
@@ -119,8 +176,8 @@ const styles = StyleSheet.create({
       fontSize: 16
     },
     signUpButton: {
-      backgroundColor: "#151617",
-      borderRadius: 10,
+      backgroundColor: "#151617", 
+      borderRadius: 10, 
       width: Dimensions.get("screen").width * 0.90,
       alignItems: 'center',
       alignSelf: "center",
@@ -128,12 +185,12 @@ const styles = StyleSheet.create({
       marginTop: 20 
     },
     signInButton: {
-      backgroundColor: "#151617",
+      backgroundColor: "#073EFF",
       borderRadius: 10,
       width: Dimensions.get("screen").width * 0.90,
       alignItems: 'center',
       alignSelf: "center",
-      paddingVertical: 15,
+      paddingVertical: 20,
       marginTop: 40
     },
     buttonText: {

@@ -1,87 +1,143 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TextInput, Button, TouchableOpacity, Text } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useEffect, useState } from "react";
+import { Alert, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import DropDownPicker from "react-native-dropdown-picker";
+import { currencyURL, rateURL } from "../assets/constants";
+import Icon from 'react-native-vector-icons/Ionicons';
 
-const Converter = () => {
-    const [amount, setAmount] = useState('');
-    const [sourceCurrency, setSourceCurrency] = useState('USD');
-    const [targetCurrency, setTargetCurrency] = useState('EUR');
-    const [exchangeRate, setExchangeRate] = useState(0);
-    const [conversionResult, setConversionResult] = useState('');
-  
-    const handleConvert = () => {
-      if (!amount) {
-        return;
-      }
-      const convertedAmount = parseFloat(amount) * exchangeRate;
-      const result = `${amount} ${sourceCurrency} = ${convertedAmount.toFixed(2)} ${targetCurrency}`;
-      setConversionResult(result);
-    };
-  
-    return (
-      <View style={styles.container}>
-        <View style={styles.wrapper}>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter amount"
-            value={amount}
-            onChangeText={setAmount}
-            keyboardType="numeric"
-          />
-          <Picker
-            selectedValue={sourceCurrency}
-            onValueChange={(itemValue: any) => setSourceCurrency(itemValue)}
-          >
-            <Picker.Item label="USD" value="USD" />
-            <Picker.Item label="EUR" value="EUR" />
-          </Picker>
-          <Picker
-            selectedValue={targetCurrency}
-            onValueChange={(itemValue: any) => setTargetCurrency(itemValue)}
-          >
-            <Picker.Item label="USD" value="USD" />
-            <Picker.Item label="EUR" value="EUR" />
-          </Picker>
-          <TouchableOpacity style={styles.convertButton} onPress={handleConvert}>
-            <Text style={{ color: 'white', fontSize: 18, fontWeight: 'bold', alignSelf: 'center' }}>Convert</Text>
-          </TouchableOpacity>
-          {conversionResult !== '' && <Text style={styles.resultText}>{conversionResult}</Text>}
-        </View>
-      </View>
-    );
+const Converter = ({navigation}: any) => {
+  const [from, setFrom]: any = useState("");
+  const [to, setTo]: any  = useState("");
+  const [currencies, setCurrencies]: any = useState([]);
+  const [fromPicker, setFromPicker]: any = useState(false);
+  const [toPicker, setToPicker]: any = useState(false);
+  const [rate, setRate]: any = useState(0);
+
+  const getCurrencyList = async() => {
+    const response = await fetch(currencyURL, {
+        method: "GET",
+    });
+    const res = await response.json(); 
+    const mappedData = Object.keys(res).map(key => ({
+        label: `${key} - ${res[key]}`,
+        value: key
+    }));
+    setCurrencies(mappedData);
   };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  input: {
-    width: '100%',
-    padding: 10,
-    borderWidth: 1,
-    borderColor: 'gray',
-    marginBottom: 10,
-    borderRadius: 15
-  },
-  convertButton: {
-    backgroundColor: '#000000', 
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-  },
-  wrapper: {
-    borderWidth: 1,
-    borderRadius: 15,
-    padding: 10,
-    marginTop: 150,
-    backgroundColor: '#d7d7d6'
-  },
-  resultText: {
-    marginTop: 10,
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center'
+  useEffect(() => {
+    getCurrencyList();
+  },[]);
+
+  const calculate = async() => {
+    if(from == "" || to == ""){
+        Alert.alert("Please fill all values for calculation.");
+        return;
+    }
+    const response = await fetch(`${rateURL}/${from}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        }
+    });
+    const res = await response.json(); 
+    setRate(res.rates[to]);
+    return res.rates[to];
+  };
+
+  return(
+    <ScrollView style={styles.container}>
+          <View style={{flexDirection: "row", alignItems: "center", alignSelf: "center"}}>
+            <Icon name="calculator" size={30} color="white" />
+            <Text style={{fontSize: 22, fontWeight: "600", textAlign: "center", alignSelf: "center", color: "white"}}>  Convert currency</Text>
+          </View>
+
+        <View style={{flexDirection: "column", width: "90%", alignSelf: "center", alignItems: "center",  marginTop: 40, flex: fromPicker? 1 : 0}}>
+          <Text style={styles.bodyText}>Choose the initial currency:</Text>
+          <DropDownPicker
+              onOpen={() => setRate(0)}
+              open={fromPicker}
+              value={from}
+              items={currencies}
+              setOpen={setFromPicker}
+              setValue={setFrom}
+              setItems={setCurrencies}
+              placeholder="From: Choose currency" 
+              placeholderStyle={{color: "black"}}
+              containerStyle={{width: "100%", alignSelf: "center", marginTop: 10}}
+              textStyle={{fontSize: 18, color: "black"}}
+          />
+        </View>
+        <View style={{flexDirection: "column", width: "90%", alignSelf: "center", alignItems: "center", marginTop: fromPicker ? 250 : 40, flex: toPicker? 1 : 0}}>
+          <Text style={styles.bodyText}>Choose the converted currency:</Text>
+          <DropDownPicker
+              onOpen={() => setRate(0)}
+              open={toPicker}
+              value={to}
+              items={currencies}
+              setOpen={setToPicker}
+              setValue={setTo}
+              setItems={setCurrencies}
+              placeholder="To: Choose currency"
+              placeholderStyle={{color: "black"}}
+              containerStyle={{width: "100%", alignSelf: "center", marginTop: 10}}
+              textStyle={{fontSize: 18, color: "black"}}
+          />
+        </View>
+        {rate !== 0 ?
+          <View style={{flexDirection: "column", width: "90%", alignSelf: "center", alignItems: "center", marginTop: 20}}>
+              <Text style={styles.resultsText}>1 {from} = {rate} {to}</Text>
+              <TouchableOpacity onPress={() => navigation.navigate("Chart", {url: from+to, nav: true})}>
+                <Text style={styles.linkText}>Click here to check forex trend if available for {from}{to}</Text>
+              </TouchableOpacity>
+          </View>
+        : null}
+        <TouchableOpacity style={[styles.button, {marginTop: toPicker? 250 : 100}]} onPress={calculate}>
+          <Text style={styles.buttonText}>Calculate</Text>
+        </TouchableOpacity>
+    </ScrollView>
+  )
+};
+
+export const styles= StyleSheet.create({
+    container:{
+      flex: 1,
+      backgroundColor: "black"
+    },
+    bodyText:{
+      fontSize: 20,
+      alignSelf: "center",
+      width: "100%",
+      color: "white"
+    },
+    button:{
+      width: "90%",
+      paddingVertical: 15,
+      backgroundColor: "#073EFF",
+      borderRadius: 10,
+      alignSelf: "center",
+      marginTop: 30,
+      justifyContent: "center",
+      alignItems: "center"
+    },
+    buttonText:{
+      fontSize: 20,
+      color:"white"
+    },
+    resultsText:{
+      fontSize: 20,
+      alignSelf: "center",
+      width: "100%",
+      color: "lightgreen",
+      textAlign: "center",
+    },
+    linkText:{
+      fontSize: 20,
+      alignSelf: "center",
+      width: Dimensions.get("screen").width * 0.95,
+      color: "red",
+      textAlign: "center",
+      marginTop: 10
   }
 });
 

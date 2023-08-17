@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, TextInput, Dimensions } from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
+import OTPInputView from '@twotalltotems/react-native-otp-input'
 
-const ModalComponent = ({ word, visible, setVisible, handleConfirm }: any) => {
+export const ModalComponent = ({ word, visible, setVisible, handleConfirm }: any) => {
     return(
         <Modal
             isVisible={visible}
@@ -25,6 +26,68 @@ const ModalComponent = ({ word, visible, setVisible, handleConfirm }: any) => {
                         <Text style={[styles.buttonText, {color: "black"}]}>Cancel</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.buttons, {backgroundColor: "black"}]} onPress={handleConfirm}>
+                    <Text style={[styles.buttonText, {color: "white"}]}>Confirm</Text> 
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </Modal>
+    )
+};
+
+export const SecondModalComponent = ({ visible, setVisible, handleConfirm, name, setName, password, setPassword, recoveryCode, setRecoveryCode }: any) => {
+    useEffect(() => {
+        if(!visible){
+            setName("");
+            setPassword("");
+            setRecoveryCode("");
+        }
+    },[visible]);
+    
+    return(
+        <Modal
+            isVisible={visible}
+            backdropOpacity={0.3}
+            animationInTiming={500}
+            animationOutTiming={350}
+            statusBarTranslucent={true}
+            style={styles.modal}
+        >
+            <View style={styles.modalCont}>
+                <TouchableOpacity onPress={() => setVisible(!visible)} style={{alignSelf: "flex-end", marginRight: 20}}>
+                    <Icon name="close-circle-outline" color={"black"} size={22} />
+                </TouchableOpacity>
+                <Text style={styles.warning}>Reset Password</Text>
+                <Text style={styles.ready}>Input the name or email for the account you want to reset password for:</Text>
+                <TextInput
+                    style={styles.textInput}
+                    value={name}
+                    onChangeText={setName}
+                    placeholder="Enter your name or email here"
+                    placeholderTextColor={"#d7d7d6"}
+                />
+                <Text style={styles.ready}>Input your recovery code:</Text>
+                <TextInput
+                    style={styles.textInput}
+                    value={recoveryCode}
+                    onChangeText={setRecoveryCode}
+                    placeholder="Enter your recovery code here"
+                    placeholderTextColor={"#d7d7d6"}
+                    maxLength={6}
+                    keyboardType='number-pad'
+                />
+                <Text style={styles.ready}>Input the new password:</Text>
+                <TextInput
+                    style={styles.textInput}
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="Enter new password here"
+                    placeholderTextColor={"#d7d7d6"}
+                />
+                <View style={styles.buttonsCont}>
+                    <TouchableOpacity style={[styles.buttons, {backgroundColor: "black"}]} onPress={() => setVisible(!visible)}>
+                        <Text style={[styles.buttonText, {color: "white"}]}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.buttons, {backgroundColor: "#073EFF"}]} onPress={() => handleConfirm(name)}>
                     <Text style={[styles.buttonText, {color: "white"}]}>Confirm</Text> 
                     </TouchableOpacity>
                 </View>
@@ -85,6 +148,29 @@ export const styles = StyleSheet.create({
     },
     buttonText:{
         fontSize: 16,
+    },
+    textInput:{
+        width: "90%",
+        height: 60,
+        borderColor: "#d7d7d6",
+        borderWidth: 1,
+        borderRadius: 8,
+        marginTop: 20,
+        fontFamily: "Poppins Medium",
+        alignSelf: "center",
+        color: "black",
+        paddingHorizontal: 20,
+        fontSize: 16
+    },
+    underlineStyleBase: {
+        width: 30,
+        height: 45,
+        borderWidth: 0,
+        borderBottomWidth: 1,
+        borderColor: "black"
+    },
+    underlineStyleHighLighted: {
+        borderColor: "black",
     },
 });
 

@@ -27,7 +27,8 @@ const SignUp = ({navigation, route}: any) => {
       return;
     }
     if(password == confirmPassword){
-      const account = {email: email, password: password, name: name};
+      const number = randomSixDigitNumber().toString();
+      const account = {email: email, password: password, name: name, code: number};
       await AsyncStorage.setItem("account", JSON.stringify(account))
       .then(async () => {
         const response = await fetch(addUrl, {
@@ -39,7 +40,7 @@ const SignUp = ({navigation, route}: any) => {
         });
         const res = await response.json(); 
         setLoad(false);
-        Alert.alert(res.message);
+        Alert.alert(res.message + "!" + "\n" + `This is your recovery code: ${number}.` + "\n" + "Please keep it safe and do not share it with anyone");
         navigation.navigate("TopTabs");
       })
     }
@@ -49,7 +50,7 @@ const SignUp = ({navigation, route}: any) => {
     }
   };
   const handleConfirm = async() => {
-    // await AsyncStorage.setItem("navigated", nav?.isNav);
+    await AsyncStorage.setItem("navigated", nav?.isNav);
     setVisible(!visible);
     navigation.navigate("ChartScreen", {url: nav?.isNav, nav: false});
   };
@@ -85,14 +86,22 @@ const SignUp = ({navigation, route}: any) => {
       }
   };
 
+  const randomSixDigitNumber = () => {
+    const min = 100000; // Minimum value (inclusive)
+    const max = 999999; // Maximum value (inclusive)
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  };
+  
+
   return (
     <KeyboardAvoidingView style={styles.container}> 
-      <TouchableOpacity onPress={handleBack}>
-        <Image source={require('../assets/back.png')} style={styles.icon} />
-      </TouchableOpacity>
-
-      <Image source={require("../assets/heading.png")} style={{width: 80, height: 80, alignSelf: "center", marginTop: 10}} resizeMode="contain" />
-      <Text style={{ color: 'white', fontSize: 26, fontWeight: 'bold', marginTop: 20, alignSelf: 'center'}}>Sign up</Text>
+      <View style={{flexDirection: "row", width: "95%", justifyContent: "space-between", alignItems: "center", alignSelf: "center"}}>
+        <TouchableOpacity onPress={handleBack}>
+          <Image source={require('../assets/back.png')} style={styles.icon} />
+        </TouchableOpacity>
+        <Text style={{ color: 'white', fontSize: 26, fontWeight: 'bold', alignSelf: 'center'}}>Sign up</Text>
+        <View style={styles.icon} />
+      </View>
 
       <TextInput
         style={styles.nameInput}
@@ -174,7 +183,7 @@ const styles = StyleSheet.create({
     borderColor: "#d7d7d6",
     borderWidth: 1,
     borderRadius: 8,
-    marginTop: 30,
+    marginTop: 40,
     fontFamily: "Poppins Medium",
     alignSelf: "center",
     color: "white",
@@ -187,7 +196,7 @@ const styles = StyleSheet.create({
     borderColor: "#d7d7d6",
     borderWidth: 1,
     borderRadius: 8,
-    marginTop: 30,
+    marginTop: 40,
     fontFamily: "Poppins Medium",
     alignSelf: "center",
     color: "white",
@@ -199,12 +208,12 @@ const styles = StyleSheet.create({
     fontSize: 16
   },
   signInButton: {
-    backgroundColor: "#151617",
+    backgroundColor: "#073EFF",
     borderRadius: 10,
     width: Dimensions.get("screen").width * 0.90,
     alignItems: 'center',
     alignSelf: "center",
-    paddingVertical: 15,
+    paddingVertical: 20,
     marginTop: 30
   },
   buttonText: {

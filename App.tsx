@@ -13,8 +13,12 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import Account from './src/screens/Account';
 import Add from './src/screens/Add';
+import History from './src/screens/History';
+import Load from './src/screens/Load';
+import Recovery from './src/screens/Recovery';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-const Tab = createMaterialTopTabNavigator();
+const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 function TopTabs(){
@@ -23,7 +27,11 @@ function TopTabs(){
     screenOptions={({ route }: any) => ({
       headerShown: false,
       tabBarStyle: {
+        height: "12%",
+        justifyContent: 'center',
+        alignItems: 'center',
         backgroundColor: 'black',
+        borderTopWidth: 0,
       },
       tabBarIcon: ({ focused, color, size }: any) => { 
         let iconName: any;
@@ -41,18 +49,33 @@ function TopTabs(){
       },
       tabBarActiveTintColor: "white",
       tabBarInactiveTintColor: "#909BAD",
+      tabBarLabel: ({ focused, color }: any) => {
+        let label: any;
+        if (route.name === 'Account') {
+          label = 'Account';
+        } else if (route.name === 'Add') {
+          label = 'Add';
+        } else if (route.name === 'Converter') {
+          label = 'Converter';
+        } else if (route.name === 'History') {
+          label = 'History';
+        }
+        return <Text style={{ color: color, fontSize: 17 }}>{label}</Text>;
+      },
     })}
     >
       <Tab.Screen name="Account" component={Account} />
       <Tab.Screen name="Add" component={Add} />
       <Tab.Screen name="Converter" component={Converter} />
-      <Tab.Screen name="History" component={Converter} />
+      <Tab.Screen name="History" component={History} />
     </Tab.Navigator>
   )
 }
 
 function App(): JSX.Element {
   const [accountSaved, setAccountSaved] = useState(false);
+  const [detailsSaved, setDetailsSaved]: any = useState();
+  const [load, setLoad]: any = useState(true);
   const getAccount = async() => {
     const dataSaved = await AsyncStorage.getItem("account");
     if(dataSaved){
@@ -62,8 +85,14 @@ function App(): JSX.Element {
       setAccountSaved(false);
     }
   };
+  const getDetails = async() => {
+    const dataSaved = await AsyncStorage.getItem("navigated");
+    if(dataSaved){
+      setDetailsSaved(dataSaved);
+    }
+  };
   useEffect(() => {
-    getAccount();
+    Promise.all([getAccount(), getDetails()]).then(() => setLoad(false));
   },[]);
 
   return (
@@ -71,15 +100,24 @@ function App(): JSX.Element {
     <NavigationContainer>
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" />
+        {load ?
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Load" component={Load} />
+          </Stack.Navigator>
+        :
         <Stack.Navigator screenOptions={{headerShown: false}} >
-          {/* {!accountSaved ? */}
+          {detailsSaved? 
+            <Stack.Screen name="ChartScreen" component={ChartScreen} initialParams={{url: detailsSaved, nav: false}} />
+          : null}
+          {!accountSaved ?
             <Stack.Screen name="Login" component={SignIn} />
-          {/* : null} */}
+          : null} 
           <Stack.Screen name="TopTabs" component={TopTabs} />
           <Stack.Screen name="Signin" component={SignIn} />
           <Stack.Screen name="Register" component={SignUp} />
-          <Stack.Screen name="ChartScreen" component={ChartScreen} />
+          <Stack.Screen name="Chart" component={ChartScreen} />
         </Stack.Navigator>
+        }
       </SafeAreaView>
     </NavigationContainer>
     </PaperProvider>
